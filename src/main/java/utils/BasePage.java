@@ -6,6 +6,8 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
 
+import java.time.Duration;
+
 public class BasePage {
 
     public WebDriver driver;
@@ -14,7 +16,7 @@ public class BasePage {
     // Constructor
     public BasePage(WebDriver driver) {
         this.driver = driver;
-        wait = new WebDriverWait(driver, 8);
+        wait = new WebDriverWait(driver, Duration.ofMillis(10000));
     }
 
     // Wait Wrapper Method

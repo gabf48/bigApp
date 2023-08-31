@@ -3,27 +3,38 @@ package utils;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxOptions;
+import org.openqa.selenium.remote.DesiredCapabilities;
+import org.testng.annotations.AfterMethod;
+
+import java.io.IOException;
 
 import static java.lang.System.setProperty;
 import static org.apache.commons.lang3.SystemUtils.*;
 
 public class BaseTest {
 
-    public static WebDriver driver;
+    public WebDriver driver;
 
+    public WebDriver initializeDriver() throws IOException {
 
-    public static WebDriver initializeDriver() {
+        System.setProperty("webdriver.http.factory", "jdk-http-client");
+
         if (!IS_OS_WINDOWS && !IS_OS_LINUX && !IS_OS_MAC) {
             throw new RuntimeException("Could not initialize browser due to unknown operating system!");
         }
+        //        if (IS_OS_WINDOWS) {
+        //            setProperty("webdriver.gecko.driver", "src/test/java/browsers/geckodriver.exe");
+        //        }
         if (IS_OS_WINDOWS) {
-            setProperty("webdriver.chrome.driver", "src/main/java/browsers/chromedriver.exe");
+            setProperty("webdriver.chrome.driver", "src\\main\\java\\browsers\\chromedriver.exe");
         }
         if (IS_OS_LINUX) {
-            setProperty("webdriver.chrome.driver", "src/main/java/browsers/chromedriver");
+            setProperty("webdriver.chrome.driver", "src/test/java/browsers/chromedriver");
         }
         if (IS_OS_MAC) {
-            setProperty("webdriver.chrome.driver", "src/main/java/browsers/chromedriverMac");
+            setProperty("webdriver.chrome.driver", "src/test/java/browsers/chromedriverMac");
         }
 
         ChromeOptions chromeOptions = new ChromeOptions();
@@ -37,12 +48,14 @@ public class BaseTest {
         chromeOptions.addArguments("--proxy-server='direct://'");
         chromeOptions.addArguments("--proxy-bypass-list=*");
         chromeOptions.addArguments("--ignore-certificate-errors");
+        chromeOptions.addArguments("--remote-allow-origins=*");
 
-//        try {
-//            Runtime.getRuntime().exec("taskkill /F /IM chromedriver.exe /T");
-//        } catch (Exception e) {
-//        }
+                            try {
+                                Runtime.getRuntime().exec("taskkill /F /IM chromedriver.exe /T");
+                            } catch (Exception ignore) {
+                            }
 
+        // return driver = new FirefoxDriver();
         return driver = new ChromeDriver();
     }
 
@@ -50,5 +63,4 @@ public class BaseTest {
 //    public void tearDown() {
 //        driver.quit();
 //    }
-
 }

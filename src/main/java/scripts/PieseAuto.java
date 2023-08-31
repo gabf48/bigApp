@@ -1,4 +1,4 @@
-package pieseAuto.scripts;
+package scripts;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -7,13 +7,12 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import utils.BaseTest;
 
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.List;
 
-public class PieseAutoScritp extends BaseTest {
-
+public class PieseAuto extends BaseTest{
     @BeforeMethod
-    public void setUp(){
+    public void setUp() throws IOException {
         WebDriver driver = initializeDriver();
     }
 
@@ -45,7 +44,7 @@ public class PieseAutoScritp extends BaseTest {
 
             //stocheaza numarul de poze pentru produsul current si afiseaza
             List<WebElement> photos = driver.findElements(By.cssSelector("[class=\"prod-thumbs-jcarousel\"] img"));
-           // System.out.println("Produsul are " + photos.size() + " poze!");
+            System.out.println("Produsul are " + photos.size() + " poze!");
 
 
             //full-screen poza de la produs
@@ -56,15 +55,15 @@ public class PieseAutoScritp extends BaseTest {
             System.out.println(driver.findElement(By.cssSelector("div:nth-child(2) > div > img:nth-child(2)")).getAttribute("src"));
 
             //incearca sa ia url-ul si pentru a 2-a poza daca exista
-         try {
-             //next photo
-             driver.findElement(By.cssSelector("[title=\"Next (arrow right)\"]")).click();
-             Thread.sleep(2000);
+            try {
+                //next photo
+                driver.findElement(By.cssSelector("[title=\"Next (arrow right)\"]")).click();
+                Thread.sleep(2000);
 
-             //afiseaza url-ul pentru poza 2
-             System.out.println(driver.findElement(By.cssSelector("div:nth-child(3) > div > img:nth-child(2)")).getAttribute("src"));
+                //afiseaza url-ul pentru poza 2
+                System.out.println(driver.findElement(By.cssSelector("div:nth-child(3) > div > img:nth-child(2)")).getAttribute("src"));
 
-         } catch (Exception e){}
+            } catch (Exception ignore){}
 
             //inchide fereastra full screen cu poze
             driver.navigate().back();
@@ -72,7 +71,7 @@ public class PieseAutoScritp extends BaseTest {
             //afiseaza pretul
             String pret = driver.findElement(By.cssSelector("[class=\"price-item\"]")).getText();
             String pret_0 = pret.replace(" lei","");
-            double pret_2 = Double.valueOf(pret_0);
+            double pret_2 = Double.parseDouble(pret_0);
             System.out.println(pret_2);
 
 
