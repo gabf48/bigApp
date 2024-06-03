@@ -111,7 +111,6 @@ public class ExtractDetails extends BaseTest {
             pret = pret.replace(".", "");
         }
                 double pret1 = Double.parseDouble(pret);
-                System.out.println(pret1);
         System.out.println("Pret dupa editare = " + pret1);
                 List<WebElement> images = driver.findElements(By.cssSelector("[class=\"accesoriu-gsm-poze\"] a"));
                 List<String> imageUrls = new ArrayList<>();
@@ -123,6 +122,40 @@ public class ExtractDetails extends BaseTest {
 
                 String imageUrlsString = String.join(", ", imageUrls); // Joining URLs with comma
 
+
+    }
+
+
+    @Test
+    public void getLinkNameAndPriceForProductsExpensiveThenSpecificAmount() throws IOException, InterruptedException {
+        login.loginSep();
+        Thread.sleep(3000);
+        driver.get("https://sepmobile.ro/accesorii-gsm/piese/pagina-147");
+
+        for (int j = 1; j <= 230; j++) {
+            for (int i = 1; i <= 15; i++) {
+
+                String price = driver.findElement(By.cssSelector("#continut > div.accesorii-gsm-browse > div:nth-child("+i+") > div > div > span.tag_on")).getText();
+               // System.out.println("Pret initial = " + price);
+                if (price.contains(",")) {
+                    price = price.substring(0, price.indexOf(","));
+                } else if (price.contains(".")) {
+                    price = price.replace(".", "");
+                }
+                double pret1 = Double.parseDouble(price);
+               // System.out.println("Pret dupa editare = " + pret1);
+
+                if (pret1>=1000) {
+                    System.out.println(driver.findElement(By.cssSelector("#continut > div.accesorii-gsm-browse > div:nth-child("+i+") > div > h2 > a")).getAttribute("href"));
+                }
+
+
+                Thread.sleep(1000);
+
+            }
+            navigation.goNextPage();
+            Thread.sleep(1000);
+        }
 
     }
 
