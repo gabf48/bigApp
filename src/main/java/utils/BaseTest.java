@@ -42,25 +42,30 @@ public class BaseTest {
         chromeOptions.addArguments("--no-sandbox");
         chromeOptions.addArguments("--disable-dev-shm-usage");
         chromeOptions.addArguments("--allow-running-insecure-content");
-        chromeOptions.addArguments("window-size=1920x1080");
+        chromeOptions.addArguments("window-size=2560,1440"); // Change resolution here (e.g., 2560x1440)
         chromeOptions.addArguments("--disable-gpu");
         chromeOptions.addArguments("--disable-extensions");
         chromeOptions.addArguments("--proxy-server='direct://'");
         chromeOptions.addArguments("--proxy-bypass-list=*");
         chromeOptions.addArguments("--ignore-certificate-errors");
         chromeOptions.addArguments("--remote-allow-origins=*");
+        chromeOptions.addArguments("--disable-search-engine-choice-screen");
 
-                            try {
-                                Runtime.getRuntime().exec("taskkill /F /IM chromedriver.exe /T");
-                            } catch (Exception ignore) {
-                            }
+        try {
+            Runtime.getRuntime().exec("taskkill /F /IM chromedriver.exe /T");
+        } catch (Exception ignore) {
+        }
 
         // return driver = new FirefoxDriver();
-        return driver = new ChromeDriver();
+        driver = new ChromeDriver(chromeOptions);
+        driver.manage().window().maximize(); // Maximize the browser window
+
+        return driver;
     }
 
 //    @AfterMethod
-//    public void tearDown() {
+//    public void tearDown() throws InterruptedException {
 //        driver.quit();
+//        Thread.sleep(2500);
 //    }
 }
