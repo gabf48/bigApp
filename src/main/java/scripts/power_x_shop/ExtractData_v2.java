@@ -90,31 +90,17 @@ public class ExtractData_v2 extends BaseTest {
                 }
 
 
-
-                String pret = "";
-                String pret1 = "";
-
-                try {
-                    pret = driver.findElement(By.cssSelector("#product > div.product-cart-box > div.product-page-right-box.product-page-price-wrapper > div > meta:nth-child(2)")).getAttribute("content");
-                } catch (NoSuchElementException e) {
-                    pret1 = driver.findElement(By.cssSelector("#product > div.product-cart-box .product-page-price-wrapper > div > div.product-page-price-line-inner > span.product-price-special.product-page-price-special")).getText();
-                }
-
                 // Write all data for this product in the same row
                 writeDataToSheet(rowNo, 0, driver.getCurrentUrl());
                 writeDataToSheet(rowNo, 1, productTitle);
                 writeDataToSheet(rowNo, 2, cap); // Aceasta este coloana 2
                 writeDataToSheet(rowNo, 3, descriere);
-                writeDataToSheet(rowNo, 4, pret);
-                writeDataToSheet(rowNo, 5, pret1);
+                writeDataToSheet(rowNo, 4, extractPrice());
                 writeDataToSheet(rowNo, 6, getImages());
                 writeDataToSheet(rowNo, 8, "1");
 
                 rowNo++; // Move to the next row only after writing all data
 
-
-                pret = "";
-                pret1 = "";
                 cap = "";
 
                 // Handle multiple models
@@ -127,11 +113,6 @@ public class ExtractData_v2 extends BaseTest {
                         Thread.sleep(2000);
                         productTitle = driver.findElement(By.cssSelector("[class=\"product-page-product-name\"]")).getText();
                         descriere = driver.findElement(By.cssSelector("[class=\"parameter-table table m-0\"]")).getText();
-                        try {
-                            pret = driver.findElement(By.cssSelector("#product > div.product-cart-box > div.product-page-right-box.product-page-price-wrapper > div > meta:nth-child(2)")).getAttribute("content");
-                        } catch (NoSuchElementException e) {
-                            pret1 = driver.findElement(By.cssSelector("#product > div.product-cart-box > div.product-page-right-box.product-page-price-wrapper > div > meta:nth-child(3)")).getAttribute("content");
-                        }
 
                         try {
                             cap = driver.findElement(By.cssSelector(".product-page-right-box.noprint > div:nth-child(2) > div > span > ul [class=\"variable selected\"]")).getText();
@@ -146,8 +127,7 @@ public class ExtractData_v2 extends BaseTest {
                         writeDataToSheet(rowNo, 1, productTitle);
                         writeDataToSheet(rowNo, 2, cap);
                         writeDataToSheet(rowNo, 3, descriere);
-                        writeDataToSheet(rowNo, 4, pret);
-                        writeDataToSheet(rowNo, 5, pret1);
+                        writeDataToSheet(rowNo, 4, extractPrice());
                         writeDataToSheet(rowNo, 6, getImages());
                         writeDataToSheet(rowNo, 8, "2");
                         rowNo++; // Move to the next row only after writing all data
@@ -171,13 +151,6 @@ public class ExtractData_v2 extends BaseTest {
                                 Thread.sleep(5000);
                                 productTitle = driver.findElement(By.cssSelector("[class=\"product-page-product-name\"]")).getText();
                                 descriere = driver.findElement(By.cssSelector("[class=\"parameter-table table m-0\"]")).getText();
-                                try {
-                                    pret = driver.findElement(By.cssSelector("#product > div.product-cart-box > div.product-page-right-box.product-page-price-wrapper > div > meta:nth-child(2)")).getAttribute("content");
-                                    System.out.println("Cap try = " + cap);
-                                } catch (NoSuchElementException e) {
-                                    pret1 = driver.findElement(By.cssSelector("#product > div.product-cart-box > div.product-page-right-box.product-page-price-wrapper > div > meta:nth-child(3)")).getText();
-
-                                }
 
                                 try {
                                     cap = driver.findElement(By.cssSelector(".product-page-right-box.noprint > div:nth-child(2) > div > span > ul [class=\"variable selected\"]")).getText();
@@ -192,8 +165,7 @@ public class ExtractData_v2 extends BaseTest {
                                 writeDataToSheet(rowNo, 1, productTitle);
                                 writeDataToSheet(rowNo, 2, cap);
                                 writeDataToSheet(rowNo, 3, descriere);
-                                writeDataToSheet(rowNo, 4, pret);
-                                writeDataToSheet(rowNo, 5, pret1);
+                                writeDataToSheet(rowNo, 4, extractPrice());
                                 writeDataToSheet(rowNo, 6, getImages());
                                 writeDataToSheet(rowNo, 8, "3");
                                 rowNo++; // Move to the next row only after writing all data
@@ -204,13 +176,7 @@ public class ExtractData_v2 extends BaseTest {
                             Thread.sleep(2000);
                             productTitle = driver.findElement(By.cssSelector("[class=\"product-page-product-name\"]")).getText();
                             descriere = driver.findElement(By.cssSelector("[class=\"parameter-table table m-0\"]")).getText();
-                            try {
-                                pret = driver.findElement(By.cssSelector("#product > div.product-cart-box > div.product-page-right-box.product-page-price-wrapper > div > meta:nth-child(2)")).getAttribute("content");
-                                System.out.println("Cap try = " + cap);
-                            } catch (NoSuchElementException e) {
-                                pret1 = driver.findElement(By.cssSelector("#product > div.product-cart-box > div.product-page-right-box.product-page-price-wrapper > div > meta:nth-child(3)")).getText();
 
-                            }
                             try {
                                 cap = driver.findElement(By.cssSelector(".product-page-right-box.noprint > div:nth-child(2) > div > span > ul [class=\"variable selected\"]")).getText();
                                 System.out.println("Cap try = " + cap);
@@ -224,8 +190,7 @@ public class ExtractData_v2 extends BaseTest {
                             writeDataToSheet(rowNo, 1, productTitle);
                             writeDataToSheet(rowNo, 2, cap);
                             writeDataToSheet(rowNo, 3, descriere);
-                            writeDataToSheet(rowNo, 4, pret);
-                            writeDataToSheet(rowNo, 5, pret1);
+                            writeDataToSheet(rowNo, 4, extractPrice());
                             writeDataToSheet(rowNo, 6, getImages());
                             writeDataToSheet(rowNo, 8, "4");
 
@@ -305,7 +270,15 @@ public class ExtractData_v2 extends BaseTest {
         return allUrls;
     }
 
-
+    private String extractPrice() {
+        try {
+            String pret;
+            return pret = driver.findElement(By.cssSelector("#product > div.product-cart-box > div.product-page-right-box.product-page-price-wrapper > div > meta:nth-child(2)")).getAttribute("content");
+        } catch (NoSuchElementException e) {
+            String pret1;
+            return pret1 = driver.findElement(By.cssSelector("#product > div.product-cart-box > div.product-page-right-box.product-page-price-wrapper > div > meta:nth-child(3)")).getText();
+        }
+    }
 
 
 
