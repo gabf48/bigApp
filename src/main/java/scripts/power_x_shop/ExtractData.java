@@ -44,8 +44,6 @@ public class ExtractData extends BaseTest {
         sheet = workbook1.getSheetAt(0);
 
         rowNo = 1; // Initialize row number
-        cellNo = 1; // Initialize cell number
-        newRow = true; // Change this to false to write in a new cell
 
         String pagini = driver.findElement(By.cssSelector("div.sortbar.sortbar-bottom > nav > div")).getText();
         Pattern pattern = Pattern.compile("\\b(\\d+)\\s+Pagini\\b");
@@ -56,7 +54,7 @@ public class ExtractData extends BaseTest {
         }
 
         // Loop through pages
-        for (int p = 1; p <= totalPageNumber; p++) {
+        for (int p = 1; p <= 1; p++) {
             if (p > 1) {
                 driver.get("https://powerxshop.ro/akkumulatorok-288/laptop-akkumulator-289/acer-291?page=" + p + "#content");
                 Thread.sleep(8000); // Ensure the page loads correctly
@@ -73,22 +71,29 @@ public class ExtractData extends BaseTest {
                 Thread.sleep(3000);
                 driver.findElement(By.cssSelector("#snapshot_vertical > div:nth-child(" + j + ") > div > div.card-body.product-card-body > h2 > a")).click();
                 System.out.println("Produsul nr. " + j + "/" + products + " de pe pagina " + p + " a fost deschis.");
+
                 String productTitle = driver.findElement(By.cssSelector("[class=\"product-page-product-name\"]")).getText();
                 String descriere = driver.findElement(By.cssSelector("[class=\"parameter-table table m-0\"]")).getText();
+                String pret = "";
+                String pret1 = "";
+
                 try {
-                    String pret = driver.findElement(By.cssSelector("#product > div.product-cart-box > div.product-page-right-box.product-page-price-wrapper > div > meta:nth-child(2)")).getAttribute("content");
-                    String pret1 = driver.findElement(By.cssSelector("#product > div.product-cart-box > div.product-page-right-box.product-page-price-wrapper > div > meta:nth-child(3)")).getAttribute("content");
-                    writeDataToSheet(3, pret);
-                    writeDataToSheet(4, pret1);
+                    pret = driver.findElement(By.cssSelector("#product > div.product-cart-box > div.product-page-right-box.product-page-price-wrapper > div > meta:nth-child(2)")).getAttribute("content");
+                    pret1 = driver.findElement(By.cssSelector("#product > div.product-cart-box .product-page-price-wrapper > div > div.product-page-price-line-inner > span.product-price-special.product-page-price-special")).getText();
                 } catch (Exception ignore) {
                 }
-                // Write product title to the sheet
-                writeDataToSheet(rowNo++, 1, productTitle);
-                writeDataToSheet(2, descriere);
 
-                List<WebElement> producator = driver.findElements(By.cssSelector(".product-page-right-box.noprint > div:nth-child(1) > div > span > ul > li > a"));
+                // Write all data for this product in the same row
+                writeDataToSheet(rowNo, 0, driver.getCurrentUrl());
+                writeDataToSheet(rowNo, 1, productTitle);
+                writeDataToSheet(rowNo, 2, descriere);
+                writeDataToSheet(rowNo, 3, pret);
+                writeDataToSheet(rowNo, 4, pret1);
+                pret = "";
+                rowNo++; // Move to the next row only after writing all data
+
+                // Handle multiple models
                 List<WebElement> capacitate = driver.findElements(By.cssSelector(".product-page-right-box.noprint > div:nth-child(2) > div > span > ul > li > a"));
-                int producatori = producator.size();
                 int capacitati = capacitate.size();
 
                 if (capacitati > 1) {
@@ -97,24 +102,24 @@ public class ExtractData extends BaseTest {
                         Thread.sleep(2000);
                         productTitle = driver.findElement(By.cssSelector("[class=\"product-page-product-name\"]")).getText();
                         descriere = driver.findElement(By.cssSelector("[class=\"parameter-table table m-0\"]")).getText();
-                        String pret = "";
-                        String pret1 = "";
                         try {
                             pret = driver.findElement(By.cssSelector("#product > div.product-cart-box > div.product-page-right-box.product-page-price-wrapper > div > meta:nth-child(2)")).getAttribute("content");
-                            pret1 = driver.findElement(By.cssSelector("#product > div.product-cart-box > div.product-page-right-box.product-page-price-wrapper > div > meta:nth-child(3)")).getAttribute("content");
+                            pret1 = driver.findElement(By.cssSelector("#product > div.product-cart-box > div.product-page-right-box.product-page-price-wrapper > div > meta:nth-child(3)")).getText();
                         } catch (Exception ignore) {
                         }
-                        writeDataToSheet(3, pret);
-                        writeDataToSheet(4, pret1);
 
-                        Thread.sleep(2000);
-                        System.out.println(productTitle);
-                        writeDataToSheet(rowNo++, 1, productTitle);
-                        writeDataToSheet(2, descriere);
-
-                        Thread.sleep(2000);
+                        // Write all data for this model in the same row
+                        writeDataToSheet(rowNo, 1, productTitle);
+                        writeDataToSheet(rowNo, 2, descriere);
+                        writeDataToSheet(rowNo, 3, pret);
+                        writeDataToSheet(rowNo, 4, pret1);
+                        rowNo++; // Move to the next row only after writing all data
                     }
                 }
+
+                // Handle multiple producers
+                List<WebElement> producator = driver.findElements(By.cssSelector(".product-page-right-box.noprint > div:nth-child(1) > div > span > ul > li > a"));
+                int producatori = producator.size();
 
                 if (producatori > 1) {
                     for (int prod_no = 2; prod_no <= producatori; prod_no++) {
@@ -127,40 +132,35 @@ public class ExtractData extends BaseTest {
                                 Thread.sleep(5000);
                                 productTitle = driver.findElement(By.cssSelector("[class=\"product-page-product-name\"]")).getText();
                                 descriere = driver.findElement(By.cssSelector("[class=\"parameter-table table m-0\"]")).getText();
-                                String pret = "";
-                                String pret1 = "";
                                 try {
                                     pret = driver.findElement(By.cssSelector("#product > div.product-cart-box > div.product-page-right-box.product-page-price-wrapper > div > meta:nth-child(2)")).getAttribute("content");
-                                    pret1 = driver.findElement(By.cssSelector("#product > div.product-cart-box > div.product-page-right-box.product-page-price-wrapper > div > meta:nth-child(3)")).getAttribute("content");
+                                    pret1 = driver.findElement(By.cssSelector("#product > div.product-cart-box > div.product-page-right-box.product-page-price-wrapper > div > meta:nth-child(3)")).getText();
                                 } catch (Exception ignore) {
                                 }
-                                writeDataToSheet(3, pret);
-                                rowNo++;
-                                writeDataToSheet(4, pret1);
 
-                                Thread.sleep(2000);
-                                writeDataToSheet(rowNo++, 1, productTitle);
-                                writeDataToSheet(2, descriere);
-                                Thread.sleep(2000);
+                                // Write all data for this model in the same row
+                                writeDataToSheet(rowNo, 1, productTitle);
+                                writeDataToSheet(rowNo, 2, descriere);
+                                writeDataToSheet(rowNo, 3, pret);
+                                writeDataToSheet(rowNo, 4, pret1);
+                                rowNo++; // Move to the next row only after writing all data
                             }
                         } else {
                             Thread.sleep(2000);
                             productTitle = driver.findElement(By.cssSelector("[class=\"product-page-product-name\"]")).getText();
                             descriere = driver.findElement(By.cssSelector("[class=\"parameter-table table m-0\"]")).getText();
-                            String pret = "";
-                            String pret1 = "";
                             try {
                                 pret = driver.findElement(By.cssSelector("#product > div.product-cart-box > div.product-page-right-box.product-page-price-wrapper > div > meta:nth-child(2)")).getAttribute("content");
-                                pret1 = driver.findElement(By.cssSelector("#product > div.product-cart-box > div.product-page-right-box.product-page-price-wrapper > div > meta:nth-child(3)")).getAttribute("content");
+                                pret1 = driver.findElement(By.cssSelector("#product > div.product-cart-box > div.product-page-right-box.product-page-price-wrapper > div > meta:nth-child(3)")).getText();
                             } catch (Exception ignore) {
                             }
-                            writeDataToSheet(3, pret);
-                            writeDataToSheet(4, pret1);
 
-                            Thread.sleep(2000);
-                            writeDataToSheet(rowNo++, 1, productTitle);
-                            writeDataToSheet(2, descriere);
-                            Thread.sleep(2000);
+                            // Write all data for this producer in the same row
+                            writeDataToSheet(rowNo, 1, productTitle);
+                            writeDataToSheet(rowNo, 2, descriere);
+                            writeDataToSheet(rowNo, 3, pret);
+                            writeDataToSheet(rowNo, 4, pret1);
+                            rowNo++; // Move to the next row only after writing all data
                         }
                     }
                 }
@@ -200,6 +200,15 @@ public class ExtractData extends BaseTest {
             cell = row.createCell(cellNo);
         }
         cell.setCellValue(value);
+    }
+
+
+    @Test
+    public void takePrice() {
+        driver.get("https://powerxshop.ro/green-cell-pro-laptop-akkumulator-acer-aspire-5733-5741-5742-5742g-5750g-e1-571-travelmate-5740-5742-5271");
+
+        System.out.println("text");
+        System.out.println(driver.findElement(By.cssSelector("#product > div.product-cart-box > div.product-page-right-box.product-page-price-wrapper > div > div.product-page-price-line-inner > span.product-price-special.product-page-price-special")).getText());
     }
 }
 
