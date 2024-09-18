@@ -272,14 +272,47 @@ public class ExtractData_v2 extends BaseTest {
 
     private String extractPrice() {
         try {
-            String pret;
-            return pret = driver.findElement(By.cssSelector("#product > div.product-cart-box > div.product-page-right-box.product-page-price-wrapper > div > meta:nth-child(2)")).getAttribute("content");
+            // Extragem valoarea prețului din atributul 'content' al meta tag-ului
+            String pret = driver.findElement(By.cssSelector("#product > div.product-cart-box > div.product-page-right-box.product-page-price-wrapper > div > meta:nth-child(2)"))
+                    .getAttribute("content");
+            return calculatePrice(pret);
         } catch (NoSuchElementException e) {
-            String pret1;
-            return pret1 = driver.findElement(By.cssSelector("#product > div.product-cart-box > div.product-page-right-box.product-page-price-wrapper > div > meta:nth-child(3)")).getText();
+            // Dacă primul element nu este găsit, încercăm să extragem textul din al doilea meta tag
+            String pret = driver.findElement(By.cssSelector("#product > div.product-cart-box > div.product-page-right-box.product-page-price-wrapper > div > meta:nth-child(3)"))
+                    .getAttribute("content");
+            return calculatePrice(pret);
         }
     }
 
+    private String calculatePrice(String pret) {
+        // Înlocuim virgula cu punct pentru a gestiona numerele decimale și eliminăm orice altceva în afară de cifre și punct
+        pret = pret.replaceAll(",", ".").replaceAll("[^0-9.]", "");
+        double price = Double.parseDouble(pret); // Convertim string-ul rezultat în double pentru a permite zecimale
+
+        double priceWithCommission = price * 1.27; // Aplicăm comisionul de 27%
+
+        double finalPrice;
+
+        // Aplicăm logica de calcul în funcție de valoarea prețului cu comisionul adăugat
+        if (priceWithCommission < 15) {
+            finalPrice = 35;
+        } else if (priceWithCommission >= 15 && priceWithCommission <= 30) {
+            finalPrice = priceWithCommission * 2.5; // Adăugăm 150%
+        } else if (priceWithCommission > 30 && priceWithCommission <= 50) {
+            finalPrice = priceWithCommission * 2.1; // Adăugăm 110%
+        } else if (priceWithCommission > 50 && priceWithCommission <= 70) {
+            finalPrice = priceWithCommission * 1.9; // Adăugăm 90%
+        } else if (priceWithCommission > 70 && priceWithCommission <= 90) {
+            finalPrice = priceWithCommission * 1.8; // Adăugăm 80%
+        } else if (priceWithCommission > 90 && priceWithCommission <= 120) {
+            finalPrice = priceWithCommission * 1.7; // Adăugăm 70%
+        } else {
+            finalPrice = priceWithCommission * 1.65; // Adăugăm 65%
+        }
+
+        // Returnăm valoarea finală sub formă de String, eliminând zecimalele suplimentare dacă sunt zero
+        return String.format(finalPrice % 1 == 0 ? "%.0f" : "%.2f", finalPrice);
+    }
 
 
 }
