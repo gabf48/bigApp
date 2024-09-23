@@ -12,6 +12,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import utils.BasePage;
 import utils.BaseTest;
 
 import java.io.FileInputStream;
@@ -27,18 +28,19 @@ public class ExtractData_v2 extends BaseTest {
     private WebDriver driver;
     private XSSFSheet sheet;
     private int rowNo;
+    private BasePage basePage;
 
     @BeforeMethod
     public void setUp() throws IOException {
         driver = initializeDriver();
+        basePage = new BasePage(driver);
     }
 
     // Helper method to write data to the Excel sheet
     @Test
     public void extractDataPowerLaptop() throws InterruptedException, IOException {
+        login();
         driver.get("https://powerxshop.ro/akkumulatorok-288/laptop-akkumulator-289/acer-291");
-        driver.findElement(By.cssSelector("a.btn.btn-primary.nanobar-btn.js-nanobar-close-cookies")).click();
-        driver.manage().window().maximize();
         Thread.sleep(5000);
 
         FileInputStream fs1 = new FileInputStream("src/main/java/scripts/power_x_shop/products.xlsx");
@@ -46,7 +48,7 @@ public class ExtractData_v2 extends BaseTest {
         sheet = workbook1.getSheetAt(0);
 
         rowNo = 1; // Initialize row number
-
+        Thread.sleep(5000);
         String pagini = driver.findElement(By.cssSelector("div.sortbar.sortbar-bottom > nav > div")).getText();
         Pattern pattern = Pattern.compile("\\b(\\d+)\\s+Pagini\\b");
         Matcher matcher = pattern.matcher(pagini);
@@ -56,7 +58,9 @@ public class ExtractData_v2 extends BaseTest {
         }
 
         // Loop through pages
-        for (int p = 1; p <= 1; p++) {
+        for (int p = 1; p <= totalPageNumber; p++) {
+
+
             if (p > 1) {
                 driver.get("https://powerxshop.ro/akkumulatorok-288/laptop-akkumulator-289/acer-291?page=" + p + "#content");
                 Thread.sleep(8000); // Ensure the page loads correctly
@@ -65,15 +69,12 @@ public class ExtractData_v2 extends BaseTest {
             List<WebElement> productsOnThePage = driver.findElements(By.cssSelector("#snapshot_vertical > div > div > div.card-body.product-card-body > h2 > a"));
             int products = productsOnThePage.size();
 
-            System.out.println("Sunt " + products + " produse pe pagina " + p);
-
             // Loop through products
             for (int j = 1; j <= products; j++) {
-                System.out.println();
-                Thread.sleep(3000);
-                driver.findElement(By.cssSelector("#snapshot_vertical > div:nth-child(" + j + ") > div > div.card-body.product-card-body > h2 > a")).click();
-                System.out.println("Produsul nr. " + j + "/" + products + " de pe pagina " + p + " a fost deschis.");
-
+                Thread.sleep(5000);
+                basePage.scrollToElementAndClick(By.cssSelector("#snapshot_vertical > div:nth-child(" + j + ") > div > div.card-body.product-card-body > h2 > a"));
+                Thread.sleep(2000);
+                clickOnFirstCap();
                 String productTitle = driver.findElement(By.cssSelector("[class=\"product-page-product-name\"]")).getText();
                 String descriere = driver.findElement(By.cssSelector("[class=\"parameter-table table m-0\"]")).getText();
 
@@ -82,11 +83,23 @@ public class ExtractData_v2 extends BaseTest {
                 try {
                     WebElement elementCap = driver.findElement(By.cssSelector(".product-page-right-box.noprint > div:nth-child(2) > div > span > ul [class=\"variable selected\"]"));
                     cap = elementCap.getText();
-                    System.out.println("Cap try = " + cap);
-                } catch (NoSuchElementException e) {
-                    WebElement elementCap = driver.findElement(By.cssSelector("#product > div.product-attributes-select-box.product-page-right-box.noprint > div:nth-child(2) > div > span"));
-                    cap = elementCap.getText();
-                    System.out.println("Cap catch = " + cap);
+                } catch (NoSuchElementException e1) {
+                    try {
+                        WebElement elementCap = driver.findElement(By.cssSelector("#product > div.product-attributes-select-box.product-page-right-box.noprint > div:nth-child(2) > div > span"));
+                        cap = elementCap.getText();
+                    } catch (NoSuchElementException e2) {
+                        // Dacă nu este găsit niciun element în ambele cazuri
+                    } catch (Exception e) {
+                        // Prindem orice altă excepție neprevăzută
+                    }
+                } catch (Exception e) {
+                    // Prindem orice altă excepție din primul bloc try
+                    System.out.println("An unexpected error occurred: " + e.getMessage());
+                }
+
+                    // Dacă 'cap' nu a fost setat din cauza lipsei elementului, îi putem da o valoare implicită
+                if (cap.isEmpty()) {
+                    cap = "N/A"; // Valoare implicită
                 }
 
 
@@ -116,10 +129,8 @@ public class ExtractData_v2 extends BaseTest {
 
                         try {
                             cap = driver.findElement(By.cssSelector(".product-page-right-box.noprint > div:nth-child(2) > div > span > ul [class=\"variable selected\"]")).getText();
-                            System.out.println("Cap try = " + cap);
                         } catch (NoSuchElementException e) {
                             cap = driver.findElement(By.cssSelector("#product > div.product-attributes-select-box.product-page-right-box.noprint > div:nth-child(2) > div > span")).getText();
-                            System.out.println("Cap catch = " + cap);
                         }
 
                         // Write all data for this model in the same row
@@ -134,6 +145,10 @@ public class ExtractData_v2 extends BaseTest {
                         cap = "";
 
                     }
+                }
+
+                if (rowNo==63) {
+                    System.out.println("stop");
                 }
 
                 // Handle multiple producers
@@ -154,10 +169,8 @@ public class ExtractData_v2 extends BaseTest {
 
                                 try {
                                     cap = driver.findElement(By.cssSelector(".product-page-right-box.noprint > div:nth-child(2) > div > span > ul [class=\"variable selected\"]")).getText();
-                                    System.out.println("Cap try = " + cap);
                                 } catch (NoSuchElementException e) {
                                     cap = driver.findElement(By.cssSelector("#product > div.product-attributes-select-box.product-page-right-box.noprint > div:nth-child(2) > div > span")).getText();
-                                    System.out.println("Cap catch = " + cap);
                                 }
 
                                 // Write all data for this model in the same row
@@ -179,10 +192,8 @@ public class ExtractData_v2 extends BaseTest {
 
                             try {
                                 cap = driver.findElement(By.cssSelector(".product-page-right-box.noprint > div:nth-child(2) > div > span > ul [class=\"variable selected\"]")).getText();
-                                System.out.println("Cap try = " + cap);
                             } catch (NoSuchElementException e) {
                                 cap = driver.findElement(By.cssSelector("#product > div.product-attributes-select-box.product-page-right-box.noprint > div:nth-child(2) > div > span")).getText();
-                                System.out.println("Cap catch = " + cap);
                             }
 
                             // Write all data for this producer in the same row
@@ -312,6 +323,21 @@ public class ExtractData_v2 extends BaseTest {
 
         // Returnăm valoarea finală sub formă de String, eliminând zecimalele suplimentare dacă sunt zero
         return String.format(finalPrice % 1 == 0 ? "%.0f" : "%.2f", finalPrice);
+    }
+
+    private void login() {
+        driver.get("https://powerxshop.ro/customer/login");
+        driver.findElement(By.cssSelector("a.btn.btn-primary.nanobar-btn.js-nanobar-close-cookies")).click();
+        driver.manage().window().maximize();
+        driver.findElement(By.cssSelector("[id=\"email_login\"]")).sendKeys("comenzi@bigapp.ro");
+        driver.findElement(By.cssSelector("[id=\"password_login\"]")).sendKeys("Asociat93");
+        driver.findElement(By.cssSelector(".sr-login-row-login-button > div > div > button")).click();
+    }
+
+    private void clickOnFirstCap() {
+        try {
+            basePage.scrollToElementAndClick(By.cssSelector(".noprint > div:nth-child(2) > div > span > ul > li:nth-child(1) > a"));
+        } catch (Exception ignore){}
     }
 
 

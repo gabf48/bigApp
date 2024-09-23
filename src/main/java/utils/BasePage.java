@@ -1,7 +1,9 @@
 package utils;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
@@ -44,6 +46,23 @@ public class BasePage {
             presence = true;
         }
         Assert.assertTrue(presence);
+    }
+
+    public void scrollToElementAndClick(By selector) {
+        WebElement element = driver.findElement(selector);
+
+        // Scrollează astfel încât elementul să fie în centrul paginii
+        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", element);
+
+        // Poți adăuga o mică pauză dacă este nevoie, pentru a te asigura că pagina s-a scrollat complet
+        try {
+            Thread.sleep(500); // pauză de 500ms (opțional)
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // Acum dă click pe element
+        element.click();
     }
 
 }
