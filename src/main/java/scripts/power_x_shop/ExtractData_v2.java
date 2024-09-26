@@ -40,7 +40,8 @@ public class ExtractData_v2 extends BaseTest {
     @Test
     public void extractDataPowerLaptop() throws InterruptedException, IOException {
         login();
-        driver.get("https://powerxshop.ro/akkumulatorok-288/laptop-akkumulator-289/acer-291");
+        String base_urle = "https://powerxshop.ro/akkumulatorok-288/laptop-akkumulator-289/lenovo-400";
+        driver.get(base_urle);
         Thread.sleep(5000);
 
         FileInputStream fs1 = new FileInputStream("src/main/java/scripts/power_x_shop/products.xlsx");
@@ -62,7 +63,7 @@ public class ExtractData_v2 extends BaseTest {
 
 
             if (p > 1) {
-                driver.get("https://powerxshop.ro/akkumulatorok-288/laptop-akkumulator-289/acer-291?page=" + p + "#content");
+                driver.get(base_urle + "?page=" + p + "#content");
                 Thread.sleep(8000); // Ensure the page loads correctly
             }
 
@@ -74,6 +75,7 @@ public class ExtractData_v2 extends BaseTest {
                 Thread.sleep(5000);
                 basePage.scrollToElementAndClick(By.cssSelector("#snapshot_vertical > div:nth-child(" + j + ") > div > div.card-body.product-card-body > h2 > a"));
                 Thread.sleep(2000);
+                clickOnFirstProd();
                 clickOnFirstCap();
                 String productTitle = driver.findElement(By.cssSelector("[class=\"product-page-product-name\"]")).getText();
                 String descriere = driver.findElement(By.cssSelector("[class=\"parameter-table table m-0\"]")).getText();
@@ -97,7 +99,7 @@ public class ExtractData_v2 extends BaseTest {
                     System.out.println("An unexpected error occurred: " + e.getMessage());
                 }
 
-                    // Dacă 'cap' nu a fost setat din cauza lipsei elementului, îi putem da o valoare implicită
+                // Dacă 'cap' nu a fost setat din cauza lipsei elementului, îi putem da o valoare implicită
                 if (cap.isEmpty()) {
                     cap = "N/A"; // Valoare implicită
                 }
@@ -106,8 +108,7 @@ public class ExtractData_v2 extends BaseTest {
                 // Write all data for this product in the same row
                 writeDataToSheet(rowNo, 0, driver.getCurrentUrl());
                 writeDataToSheet(rowNo, 1, productTitle);
-                writeDataToSheet(rowNo, 2, cap); // Aceasta este coloana 2
-                writeDataToSheet(rowNo, 3, descriere);
+                writeDataToSheet(rowNo, 3, descriere + "\nCapacitate: " + cap);
                 writeDataToSheet(rowNo, 4, extractPrice());
                 writeDataToSheet(rowNo, 6, getImages());
                 writeDataToSheet(rowNo, 8, "1");
@@ -136,9 +137,13 @@ public class ExtractData_v2 extends BaseTest {
                         // Write all data for this model in the same row
                         writeDataToSheet(rowNo, 0, driver.getCurrentUrl());
                         writeDataToSheet(rowNo, 1, productTitle);
-                        writeDataToSheet(rowNo, 2, cap);
-                        writeDataToSheet(rowNo, 3, descriere);
-                        writeDataToSheet(rowNo, 4, extractPrice());
+                        writeDataToSheet(rowNo, 3, descriere + "\nCapacitate: " + cap);
+                        if (productTitle.contains("Green Cell Pro Laptop Battery PA5212U-1BRS Toshiba Satellite Pro A30-C A40-C A40-C A50-C R50-B R50-C Tecra A50-C Z50-C")) {
+
+                        } else {
+                            writeDataToSheet(rowNo, 4, extractPrice());
+                        }
+
                         writeDataToSheet(rowNo, 6, getImages());
                         writeDataToSheet(rowNo, 8, "2");
                         rowNo++; // Move to the next row only after writing all data
@@ -147,8 +152,10 @@ public class ExtractData_v2 extends BaseTest {
                     }
                 }
 
-                if (rowNo==63) {
-                    System.out.println("stop");
+                System.out.println("rownNo = " + rowNo);
+                if (rowNo == 4) {
+                    System.out.println(rowNo);
+                    System.out.print("");
                 }
 
                 // Handle multiple producers
@@ -158,7 +165,9 @@ public class ExtractData_v2 extends BaseTest {
                 if (producatori > 1) {
                     for (int prod_no = 2; prod_no <= producatori; prod_no++) {
                         driver.findElement(By.cssSelector(".product-page-right-box.noprint > div:nth-child(1) > div > span > ul > li:nth-child(" + prod_no + ") > a")).click();
+                        clickOnFirstCap();
                         capacitate = driver.findElements(By.cssSelector(".product-page-right-box.noprint > div:nth-child(2) > div > span > ul > li > a"));
+                        capacitati = 0;
                         capacitati = capacitate.size();
                         if (capacitati > 1) {
                             for (int model_no = 1; model_no <= capacitati; model_no++) {
@@ -167,17 +176,27 @@ public class ExtractData_v2 extends BaseTest {
                                 productTitle = driver.findElement(By.cssSelector("[class=\"product-page-product-name\"]")).getText();
                                 descriere = driver.findElement(By.cssSelector("[class=\"parameter-table table m-0\"]")).getText();
 
-                                try {
-                                    cap = driver.findElement(By.cssSelector(".product-page-right-box.noprint > div:nth-child(2) > div > span > ul [class=\"variable selected\"]")).getText();
-                                } catch (NoSuchElementException e) {
-                                    cap = driver.findElement(By.cssSelector("#product > div.product-attributes-select-box.product-page-right-box.noprint > div:nth-child(2) > div > span")).getText();
+                                // Verifică dacă elementul există înainte de a încerca să extragi textul
+                                List<WebElement> capElements = driver.findElements(By.cssSelector(".product-page-right-box.noprint > div:nth-child(2) > div > span > ul [class=\"variable selected\"]"));
+
+                                // Dacă elementul există, preia textul
+                                if (!capElements.isEmpty()) {
+                                    cap = capElements.get(0).getText();
+                                } else {
+                                    // Verifică dacă există al doilea element, folosind aceeași metodă
+                                    List<WebElement> capFallback = driver.findElements(By.cssSelector("#product > div.product-attributes-select-box.product-page-right-box.noprint > div:nth-child(2) > div > span"));
+                                    if (!capFallback.isEmpty()) {
+                                        cap = capFallback.get(0).getText();
+                                    } else {
+                                        // Dacă niciunul dintre elemente nu există, poți seta cap la un string gol sau un mesaj default
+                                        cap = "Capacitate indisponibilă"; // Sau lasă gol: cap = "";
+                                    }
                                 }
 
                                 // Write all data for this model in the same row
                                 writeDataToSheet(rowNo, 0, driver.getCurrentUrl());
                                 writeDataToSheet(rowNo, 1, productTitle);
-                                writeDataToSheet(rowNo, 2, cap);
-                                writeDataToSheet(rowNo, 3, descriere);
+                                writeDataToSheet(rowNo, 3, descriere + "\nCapacitate: " + cap);
                                 writeDataToSheet(rowNo, 4, extractPrice());
                                 writeDataToSheet(rowNo, 6, getImages());
                                 writeDataToSheet(rowNo, 8, "3");
@@ -190,17 +209,27 @@ public class ExtractData_v2 extends BaseTest {
                             productTitle = driver.findElement(By.cssSelector("[class=\"product-page-product-name\"]")).getText();
                             descriere = driver.findElement(By.cssSelector("[class=\"parameter-table table m-0\"]")).getText();
 
-                            try {
-                                cap = driver.findElement(By.cssSelector(".product-page-right-box.noprint > div:nth-child(2) > div > span > ul [class=\"variable selected\"]")).getText();
-                            } catch (NoSuchElementException e) {
-                                cap = driver.findElement(By.cssSelector("#product > div.product-attributes-select-box.product-page-right-box.noprint > div:nth-child(2) > div > span")).getText();
+                            // Verifică dacă elementul există înainte de a încerca să extragi textul
+                            List<WebElement> capElements = driver.findElements(By.cssSelector(".product-page-right-box.noprint > div:nth-child(2) > div > span > ul [class=\"variable selected\"]"));
+
+                            // Dacă elementul există, preia textul
+                            if (!capElements.isEmpty()) {
+                                cap = capElements.get(0).getText();
+                            } else {
+                                // Verifică dacă există al doilea element, folosind aceeași metodă
+                                List<WebElement> capFallback = driver.findElements(By.cssSelector("#product > div.product-attributes-select-box.product-page-right-box.noprint > div:nth-child(2) > div > span"));
+                                if (!capFallback.isEmpty()) {
+                                    cap = capFallback.get(0).getText();
+                                } else {
+                                    // Dacă niciunul dintre elemente nu există, poți seta cap la un string gol sau un mesaj default
+                                    cap = "Capacitate indisponibilă"; // Sau lasă gol: cap = "";
+                                }
                             }
 
                             // Write all data for this producer in the same row
                             writeDataToSheet(rowNo, 0, driver.getCurrentUrl());
                             writeDataToSheet(rowNo, 1, productTitle);
-                            writeDataToSheet(rowNo, 2, cap);
-                            writeDataToSheet(rowNo, 3, descriere);
+                            writeDataToSheet(rowNo, 3, descriere + "\nCapacitate: " + cap);
                             writeDataToSheet(rowNo, 4, extractPrice());
                             writeDataToSheet(rowNo, 6, getImages());
                             writeDataToSheet(rowNo, 8, "4");
@@ -212,7 +241,7 @@ public class ExtractData_v2 extends BaseTest {
                     }
                 }
                 // Return to the product listing page
-                driver.get("https://powerxshop.ro/akkumulatorok-288/laptop-akkumulator-289/acer-291?page=" + p + "#content");
+                driver.get(base_urle + "?page=" + p + "#content");
                 Thread.sleep(8000); // Add a small delay to ensure the page loads correctly
             }
         }
@@ -236,7 +265,7 @@ public class ExtractData_v2 extends BaseTest {
         cell.setCellValue(value);
     }
 
-    private String getImages() {
+    private String getImages() throws InterruptedException {
         List<WebElement> imagini = driver.findElements(By.cssSelector(".product-image-outer img"));
         int imaginiNo = imagini.size();
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10)); // 10 seconds timeout
@@ -267,11 +296,21 @@ public class ExtractData_v2 extends BaseTest {
             // Get the current image URL before clicking
             String initialImg = driver.findElement(By.cssSelector("#product-image-link > img")).getAttribute("src");
 
+            // If i is greater than 5, click the button to load more images
+            if (i > 5) {
+                basePage.scrollToElementAndClick(By.cssSelector("#product-image-container > div.product-images.slick-initialized.slick-slider.slick-vertical > button.slick-next.slick-arrow.slick-vertical-next-button > svg"));
+                // Poți adăuga un wait pentru a te asigura că imaginile sunt încărcate înainte de a continua
+                wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".slick-vertical > div > div > div:nth-child(" + i + ") > div > div > img")));
+            }
+
             // Click on the next image thumbnail
-            driver.findElement(By.cssSelector(".slick-vertical > div > div > div:nth-child(" + i + ") > div > div > img")).click();
+            Thread.sleep(2000);
+            basePage.scrollToElementAndClick(By.cssSelector(".slick-vertical > div > div > div:nth-child(" + i + ") > div > div > img"));
 
             // Wait until the image src attribute changes to ensure a new image is loaded
-            wait.until(ExpectedConditions.not(ExpectedConditions.attributeToBe(By.cssSelector("#product-image-link > img"), "src", initialImg)));
+            wait.until(ExpectedConditions.not(ExpectedConditions.attributeToBe(By.cssSelector("" +
+                    "" +
+                    ""), "src", initialImg)));
         }
 
         // Convert the StringBuilder to a String and print it
@@ -337,7 +376,15 @@ public class ExtractData_v2 extends BaseTest {
     private void clickOnFirstCap() {
         try {
             basePage.scrollToElementAndClick(By.cssSelector(".noprint > div:nth-child(2) > div > span > ul > li:nth-child(1) > a"));
-        } catch (Exception ignore){}
+        } catch (Exception ignore) {
+        }
+    }
+
+    private void clickOnFirstProd() {
+        try {
+            basePage.scrollToElementAndClick(By.cssSelector(".noprint > div:nth-child(1) > div > span > ul > li:nth-child(1) > a"));
+        } catch (Exception ignore) {
+        }
     }
 
 
