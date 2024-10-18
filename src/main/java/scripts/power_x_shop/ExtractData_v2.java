@@ -1,10 +1,16 @@
 package scripts.power_x_shop;
 
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.ss.usermodel.CellType;
+
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.openqa.selenium.By;
+import org.apache.poi.ss.usermodel.Row;   // Import pentru clasa Row
+import org.apache.poi.xssf.usermodel.XSSFWorkbook; // Import pentru fișiere .xlsx
+
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -40,7 +46,7 @@ public class ExtractData_v2 extends BaseTest {
     @Test
     public void extractDataPowerLaptop() throws InterruptedException, IOException {
         login();
-        String base_urle = "https://powerxshop.ro/akkumulatorok-288/laptop-akkumulator-289/lenovo-400";
+        String base_urle = "https://powerxshop.ro/akkumulatorok-288/laptop-akkumulator-289/dell-293";
         driver.get(base_urle);
         Thread.sleep(5000);
 
@@ -253,6 +259,81 @@ public class ExtractData_v2 extends BaseTest {
         workbook1.close();
     }
 
+
+    @Test
+    public void extractImages() throws InterruptedException, IOException {
+        // Apelăm funcția de login
+        login();
+
+        // Pauză pentru stabilizarea UI (deși nu e recomandat să folosești sleep-uri)
+        Thread.sleep(5000);
+
+        // Citim fișierul Excel
+        FileInputStream fs1 = new FileInputStream("src/main/java/scripts/power_x_shop/urls.xlsx");
+        XSSFWorkbook workbook1 = new XSSFWorkbook(fs1);
+        sheet = workbook1.getSheetAt(0);
+
+        // Obținem numărul total de rânduri din foaie
+        int totalRows = sheet.getPhysicalNumberOfRows();
+
+        // Iterăm prin fiecare rând
+        for (int i = 0; i < totalRows; i++) {
+            Row row = sheet.getRow(i);
+
+            // Verificăm dacă rândul nu este null și extragem celula din prima coloană (index 0)
+            if (row != null) {
+                Cell cell = row.getCell(0);
+
+                // Verificăm dacă celula nu este null și este de tip STRING (URL)
+                if (cell != null && cell.getCellType() == CellType.STRING) {
+                    String url = cell.getStringCellValue(); // Extragem URL-ul
+
+                    // Navigăm către URL-ul respectiv
+                    driver.get(url);
+
+                    // Pauză pentru încărcarea completă a paginii
+                    Thread.sleep(5000);
+
+                    // Extragem URL-ul imaginii folosind selectorul CSS
+                    String image_url = driver.findElement(By.cssSelector(".product-image-main a")).getAttribute("href");
+
+                    // Verificăm și curățăm extensia imaginii (.jpg, .JPG, .png, .PNG)
+                    image_url = cleanImageURL(image_url);
+
+                    // Afișăm URL-ul curățat
+                    System.out.println(image_url);
+
+                    // Aici poți adăuga logica de extracție a imaginilor de pe pagină, dacă este necesar
+                }
+            }
+        }
+
+        // Închidem workbook-ul și fisierul de input
+        workbook1.close();
+        fs1.close();
+    }
+
+    // Funcție care curăță URL-ul imaginii în funcție de extensie
+    private String cleanImageURL(String imageUrl) {
+        // Verificăm pentru .jpg, .JPG, .png și .PNG
+        int index = -1;
+
+        // Folosim url.toLowerCase() pentru căutare case-insensitive
+        if (imageUrl.toLowerCase().contains(".jpg")) {
+            index = imageUrl.toLowerCase().indexOf(".jpg");
+        } else if (imageUrl.toLowerCase().contains(".png")) {
+            index = imageUrl.toLowerCase().indexOf(".png");
+        }
+
+        // Dacă găsim o extensie validă, păstrăm doar partea până la extensie inclusiv
+        if (index != -1) {
+            return imageUrl.substring(0, index + 4); // +4 pentru a include extensia (.jpg sau .png)
+        }
+
+        // Dacă nu găsim extensia, returnăm URL-ul original
+        return imageUrl;
+    }
+
     private void writeDataToSheet(int rowNo, int cellNo, String value) {
         XSSFRow row = sheet.getRow(rowNo);
         if (row == null) {
@@ -307,10 +388,7 @@ public class ExtractData_v2 extends BaseTest {
             Thread.sleep(2000);
             basePage.scrollToElementAndClick(By.cssSelector(".slick-vertical > div > div > div:nth-child(" + i + ") > div > div > img"));
 
-            // Wait until the image src attribute changes to ensure a new image is loaded
-            wait.until(ExpectedConditions.not(ExpectedConditions.attributeToBe(By.cssSelector("" +
-                    "" +
-                    ""), "src", initialImg)));
+           Thread.sleep(2500);
         }
 
         // Convert the StringBuilder to a String and print it
