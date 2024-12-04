@@ -19,7 +19,8 @@ import java.util.Iterator;
 public class DeleteProducts extends BaseTest {
 
     private Login login;
-    private static final String EXCEL_FILE_PATH = "D:\\bigApp\\src\\main\\java\\scripts\\bigapp\\bigapp\\documents\\produse.xlsx";
+    private static final String EXCEL_FILE_PATH = "src/main/java/scripts/bigapp/bigapp/documents/produse.xlsx";
+
 
     @BeforeMethod
     public void setUp() throws IOException {
@@ -34,14 +35,17 @@ public class DeleteProducts extends BaseTest {
 
         driver.get("https://bigapp.ro/wp-admin/edit.php?post_type=product");
 
-        // Read SKUs from Excel file and search for each
-        FileInputStream fis = new FileInputStream(EXCEL_FILE_PATH);
+        // Construiește calea completă relativă pornind de la directorul curent
+        String fullExcelPath = System.getProperty("user.dir") + "/" + EXCEL_FILE_PATH;
+
+        // Citește SKUs din fișierul Excel
+        FileInputStream fis = new FileInputStream(fullExcelPath);
         XSSFWorkbook workbook = new XSSFWorkbook(fis);
         XSSFSheet sheet = workbook.getSheetAt(0); // Assuming data is in the first sheet
 
         Iterator<Row> rowIterator = sheet.iterator();
         rowIterator.next(); // Skip header row
-
+        int i = 925;
         while (rowIterator.hasNext()) {
             Row row = rowIterator.next();
             Cell cell = row.getCell(0); // Column A (index 0)
@@ -66,7 +70,9 @@ public class DeleteProducts extends BaseTest {
             }
 
             driver.findElement(By.id("post-search-input")).clear();
-
+        i ++;
+        int ramas = 4284 - i;
+            System.out.println("Sterse " + i + " / 4284, au mai ramas de sters: " + ramas);
         }
 
         workbook.close();
