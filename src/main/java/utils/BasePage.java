@@ -15,54 +15,60 @@ public class BasePage {
     public WebDriver driver;
     public WebDriverWait wait;
 
-    // Constructor
+    // Constructor with WebDriver initialization
     public BasePage(WebDriver driver) {
         this.driver = driver;
-        wait = new WebDriverWait(driver, Duration.ofMillis(10000));
+        this.wait = new WebDriverWait(driver, Duration.ofMillis(25000));
     }
 
-    // Wait Wrapper Method
+    // Wait until visibility of an element located by a selector
     public void waitVisibility(By elementBy) {
         wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(elementBy));
     }
 
-    // Click Method
+    // Click method after waiting for visibility
     public void click(By elementBy) {
         waitVisibility(elementBy);
         driver.findElement(elementBy).click();
     }
 
-    // Write Text
+    // Write text after waiting for visibility
     public void writeText(By elementBy, String text) {
         waitVisibility(elementBy);
         driver.findElement(elementBy).sendKeys(text);
     }
 
-    // assert if a text is displayed on the page
+    // Assert if a given text is present on the page
     public void assertIfTextIsDisplayedOnTheScreen(String text) {
-        boolean presence = false;
-
-        if (driver.getPageSource().contains(text)) {
-            presence = true;
-        }
-        Assert.assertTrue(presence);
+        boolean presence = driver.getPageSource().contains(text);
+        Assert.assertTrue(presence, "Text '" + text + "' is not displayed on the screen.");
     }
 
+    // Scroll to the element and click
     public void scrollToElementAndClick(By selector) {
         WebElement element = driver.findElement(selector);
 
-        // Scrollează astfel încât elementul să fie în centrul paginii
+        // Scroll element into view (center)
         ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", element);
 
-        // Poți adăuga o mică pauză dacă este nevoie, pentru a te asigura că pagina s-a scrollat complet
-        try {
-            Thread.sleep(500); // pauză de 500ms (opțional)
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        // Wait for the element to be clickable
+        wait.until(ExpectedConditions.elementToBeClickable(selector));
 
-        // Acum dă click pe element
+        // Now click on the element
         element.click();
     }
 
+    // Wait for element to be clickable and then click
+    public void waitForElementToBeClickableAndClick(By elementBy) {
+        wait.until(ExpectedConditions.elementToBeClickable(elementBy)).click();
+    }
+
+    // Check if element is displayed on the page
+    public boolean isElementDisplayed(By elementBy) {
+        try {
+            return driver.findElement(elementBy).isDisplayed();
+        } catch (Exception e) {
+            return false; // Element is not found or not displayed
+        }
+    }
 }
