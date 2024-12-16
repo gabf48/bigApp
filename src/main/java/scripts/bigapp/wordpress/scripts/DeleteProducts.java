@@ -45,7 +45,7 @@ public class DeleteProducts extends BaseTest {
 
         Iterator<Row> rowIterator = sheet.iterator();
         rowIterator.next(); // Skip header row
-        int i = 925;
+        int i = 3846;
         while (rowIterator.hasNext()) {
             Row row = rowIterator.next();
             Cell cell = row.getCell(0); // Column A (index 0)
