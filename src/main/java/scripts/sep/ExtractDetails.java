@@ -38,13 +38,13 @@ public class ExtractDetails extends BaseTest {
     @Test
     public void getDetailsFromAllProducts() throws IOException, InterruptedException {
         login.loginSep();
-        driver.get("https://sepmobile.ro/accesorii-gsm/piese/pagina-1");
+        driver.get("https://sepmobile.ro/accesorii-gsm/folie-protectie-nanoabs/pagina-3/");
         FileInputStream fs = new FileInputStream("src/main/java/scripts/sep/sep.xlsx");
         XSSFWorkbook workbook = new XSSFWorkbook(fs);
         XSSFSheet sheet = workbook.getSheetAt(0);
         int rowIndex = 1; // Initialize rowIndex
-        for (int j = 1; j <= 377; j++) {
-            for (int i = 1; i <= 15; i++) {
+        for (int j = 1; j <= 2; j++) {
+            for (int i = 1; i <= 6  ; i++) {
                 driver.findElement(By.cssSelector("#continut > div.accesorii-gsm-browse > div:nth-child(" + i + ") > div > h2 > a")).click();
                 Thread.sleep(1000);
                 XSSFRow row = sheet.createRow(rowIndex); // Create a new row
